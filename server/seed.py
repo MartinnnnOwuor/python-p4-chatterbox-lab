@@ -1,34 +1,32 @@
-#!/usr/bin/env python3
-
-from random import choice as rc
-
-from faker import Faker
-
 from app import app
 from models import db, Message
 
-fake = Faker()
+with app.app_context():
+    db.drop_all()
+    db.create_all()
 
-usernames = [fake.first_name() for i in range(4)]
-if "Duane" not in usernames:
-    usernames.append("Duane")
+    def make_messages():
+        messages = [
+            {
+                "body": "Hello, world!",
+                "username": "user1"
+            },
+            {
+                "body": "Flask is great!",
+                "username": "user2"
+            },
+            {
+                "body": "Python is awesome!",
+                "username": "user3"
+            }
+        ]
 
-def make_messages():
+        for msg in messages:
+            message = Message(
+                body=msg["body"],
+                username=msg["username"]
+            )
+            db.session.add(message)
+        db.session.commit()
 
-    Message.query.delete()
-    
-    messages = []
-
-    for i in range(20):
-        message = Message(
-            body=fake.sentence(),
-            username=rc(usernames),
-        )
-        messages.append(message)
-
-    db.session.add_all(messages)
-    db.session.commit()        
-
-if __name__ == '__main__':
-    with app.app_context():
-        make_messages()
+    make_messages()
